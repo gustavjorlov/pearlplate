@@ -308,29 +308,62 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Image analysis functionality
     
-    // Calculate the average color of a region in the canvas
-    function getAverageColor(startX, startY, width, height) {
-        const imageData = ctx.getImageData(startX, startY, width, height);
-        const data = imageData.data;
-        
-        let r = 0, g = 0, b = 0;
-        let count = 0;
-        
-        // Sum all RGB values
-        for (let i = 0; i < data.length; i += 4) {
-            r += data[i];
-            g += data[i + 1];
-            b += data[i + 2];
-            count++;
-        }
-        
-        // Calculate average
-        r = Math.round(r / count);
-        g = Math.round(g / count);
-        b = Math.round(b / count);
-        
-        return { r, g, b };
+// Calculate the average color of a region in the canvas with dominance to similar colors
+function getAverageColor(startX, startY, width, height) {
+    const imageData = ctx.getImageData(startX, startY, width, height);
+    const data = imageData.data;
+    
+    // First pass: calculate a simple average to use as reference color
+    let r = 0, g = 0, b = 0;
+    let count = 0;
+    
+    for (let i = 0; i < data.length; i += 4) {
+        r += data[i];
+        g += data[i + 1];
+        b += data[i + 2];
+        count++;
     }
+    
+    // Initial reference color
+    const referenceColor = {
+        r: Math.round(r / count),
+        g: Math.round(g / count),
+        b: Math.round(b / count)
+    };
+    
+    // Second pass: calculate weighted average based on similarity to reference color
+    let totalWeight = 0;
+    r = 0;
+    g = 0;
+    b = 0;
+    
+    for (let i = 0; i < data.length; i += 4) {
+        const pixelColor = {
+            r: data[i],
+            g: data[i + 1],
+            b: data[i + 2]
+        };
+        
+        // Calculate similarity (inverse of distance)
+        const distance = colorDistance(referenceColor, pixelColor);
+        // Convert distance to weight (closer colors get higher weights)
+        // Using an exponential function to emphasize similarity
+        const weight = Math.exp(-distance / 30); // The divisor controls sensitivity
+        
+        // Accumulate weighted values
+        r += pixelColor.r * weight;
+        g += pixelColor.g * weight;
+        b += pixelColor.b * weight;
+        totalWeight += weight;
+    }
+    
+    // Calculate weighted average
+    r = Math.round(r / totalWeight);
+    g = Math.round(g / totalWeight);
+    b = Math.round(b / totalWeight);
+    
+    return { r, g, b };
+}
     
     // Convert RGB to hex color
     function rgbToHex(r, g, b) {
