@@ -11,6 +11,13 @@ body {
     line-height: 1.6;
 }
 
+ol {
+    width: 200px;
+    margin: 0 auto;
+    text-align: left;
+    margin-bottom: 40px;
+}
+
 .container {
     /* max-width: 800px; */
     margin: 0 auto;
