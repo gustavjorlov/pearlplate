@@ -309,6 +309,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Image analysis functionality
     
 // Calculate the average color of a region in the canvas with dominance to similar colors
+// and priority to colors near black
 function getAverageColor(startX, startY, width, height) {
     const imageData = ctx.getImageData(startX, startY, width, height);
     const data = imageData.data;
@@ -317,10 +318,23 @@ function getAverageColor(startX, startY, width, height) {
     let r = 0, g = 0, b = 0;
     let count = 0;
     
+    // Check if there are any dark colors in the region
+    let hasDarkColors = false;
+    const darkThreshold = 50; // RGB values below this are considered "dark"
+    
     for (let i = 0; i < data.length; i += 4) {
-        r += data[i];
-        g += data[i + 1];
-        b += data[i + 2];
+        const pixelR = data[i];
+        const pixelG = data[i + 1];
+        const pixelB = data[i + 2];
+        
+        // Check if this is a dark color
+        if (pixelR < darkThreshold && pixelG < darkThreshold && pixelB < darkThreshold) {
+            hasDarkColors = true;
+        }
+        
+        r += pixelR;
+        g += pixelG;
+        b += pixelB;
         count++;
     }
     
@@ -331,12 +345,13 @@ function getAverageColor(startX, startY, width, height) {
         b: Math.round(b / count)
     };
     
-    // Second pass: calculate weighted average based on similarity to reference color
+    // Second pass: calculate weighted average with priority to dark colors
     let totalWeight = 0;
     r = 0;
     g = 0;
     b = 0;
     
+    // If dark colors are present, prioritize them
     for (let i = 0; i < data.length; i += 4) {
         const pixelColor = {
             r: data[i],
@@ -344,11 +359,21 @@ function getAverageColor(startX, startY, width, height) {
             b: data[i + 2]
         };
         
-        // Calculate similarity (inverse of distance)
+        // Calculate similarity to reference color
         const distance = colorDistance(referenceColor, pixelColor);
-        // Convert distance to weight (closer colors get higher weights)
-        // Using an exponential function to emphasize similarity
-        const weight = Math.exp(-distance / 30); // The divisor controls sensitivity
+        // Base weight from similarity
+        let weight = Math.exp(-distance / 30); // The divisor controls sensitivity
+        
+        // Calculate darkness factor (higher for darker colors)
+        // Average RGB value (lower means darker)
+        const brightness = (pixelColor.r + pixelColor.g + pixelColor.b) / 3;
+        
+        // If we have dark colors in this region and this is a dark pixel, boost its weight
+        if (hasDarkColors && brightness < darkThreshold) {
+            // Exponential boost for darker colors
+            const darknessBoost = Math.exp((darkThreshold - brightness) / 10);
+            weight *= darknessBoost;
+        }
         
         // Accumulate weighted values
         r += pixelColor.r * weight;
