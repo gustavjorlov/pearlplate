@@ -405,9 +405,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Find closest color from palette
                 const matchedColor = findClosestColor(avgColor);
                 
-                // Draw the matched color on result canvas
+                // Draw a circle with subtle outline instead of a rectangle
+                const centerX = startX + squareWidth / 2;
+                const centerY = startY + squareHeight / 2;
+                const radius = Math.min(squareWidth, squareHeight) / 2;
+                
+                // Fill the circle
                 resultCtx.fillStyle = matchedColor;
-                resultCtx.fillRect(startX, startY, squareWidth, squareHeight);
+                resultCtx.beginPath();
+                resultCtx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                resultCtx.fill();
+                
+                // Add subtle outline
+                resultCtx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+                resultCtx.lineWidth = 1;
+                resultCtx.beginPath();
+                resultCtx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                resultCtx.stroke();
             }
         }
         
