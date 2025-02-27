@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupCanvas();
     
     // Handle window resize
-    window.addEventListener('resize', setupCanvas);
+    // window.addEventListener('resize', setupCanvas);
     
     // Prevent default drag behaviors
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
