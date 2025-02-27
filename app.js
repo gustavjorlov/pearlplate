@@ -6,9 +6,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const colorPalette = document.getElementById('colorPalette');
     const colorPicker = document.getElementById('colorPicker');
     const addColorBtn = document.getElementById('addColorBtn');
+    const sizeSlider = document.getElementById('sizeSlider');
+    const sizeValue = document.getElementById('sizeValue');
     
     // Array to store colors
     let colors = [];
+    
+    // Current size value
+    let currentSize = 50;
     
     // Set canvas dimensions to match its display size
     function setupCanvas() {
@@ -256,4 +261,35 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Load saved colors on page load
     loadColors();
+    
+    // Size setting functionality
+    
+    // Load size from localStorage
+    function loadSize() {
+        const savedSize = localStorage.getItem('canvasSize');
+        if (savedSize !== null) {
+            currentSize = parseInt(savedSize);
+            sizeSlider.value = currentSize;
+            sizeValue.textContent = currentSize;
+        }
+    }
+    
+    // Save size to localStorage
+    function saveSize() {
+        localStorage.setItem('canvasSize', currentSize.toString());
+    }
+    
+    // Update size value display
+    sizeSlider.addEventListener('input', () => {
+        currentSize = parseInt(sizeSlider.value);
+        sizeValue.textContent = currentSize;
+    });
+    
+    // Save size when slider is released
+    sizeSlider.addEventListener('change', () => {
+        saveSize();
+    });
+    
+    // Load saved size on page load
+    loadSize();
 });
