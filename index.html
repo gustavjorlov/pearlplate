@@ -9,9 +9,19 @@
 <body>
     <div class="container">
         <h1>Drop Image to Canvas</h1>
-        <div class="canvas-container">
-            <canvas id="imageCanvas"></canvas>
-            <div id="dropZone">Drop image here</div>
+        <div class="canvases-wrapper">
+            <div class="canvas-container">
+                <canvas id="imageCanvas"></canvas>
+                <div id="dropZone">Drop image here</div>
+                <h3 class="canvas-label">Original Image</h3>
+            </div>
+            <div class="canvas-container" id="resultCanvasContainer" style="display: none;">
+                <canvas id="resultCanvas"></canvas>
+                <h3 class="canvas-label">Analysis Result</h3>
+            </div>
+        </div>
+        <div class="button-container">
+            <button id="analyzeBtn" disabled>Analyze Image</button>
         </div>
         <p class="instructions">Drag and drop an image file onto the canvas</p>
         

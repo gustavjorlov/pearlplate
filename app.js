@@ -1,13 +1,17 @@
 document.addEventListener('DOMContentLoaded', () => {
     const canvas = document.getElementById('imageCanvas');
     const ctx = canvas.getContext('2d');
+    const resultCanvas = document.getElementById('resultCanvas');
+    const resultCtx = resultCanvas.getContext('2d');
     const dropZone = document.getElementById('dropZone');
     const container = document.querySelector('.canvas-container');
+    const resultContainer = document.getElementById('resultCanvasContainer');
     const colorPalette = document.getElementById('colorPalette');
     const colorPicker = document.getElementById('colorPicker');
     const addColorBtn = document.getElementById('addColorBtn');
     const sizeSlider = document.getElementById('sizeSlider');
     const sizeValue = document.getElementById('sizeValue');
+    const analyzeBtn = document.getElementById('analyzeBtn');
     
     // Array to store colors
     let colors = [];
@@ -15,15 +19,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // Current size value
     let currentSize = 50;
     
+    // Track if we have an image loaded
+    let imageLoaded = false;
+    
     // Set canvas dimensions to match its display size
     function setupCanvas() {
         const rect = canvas.getBoundingClientRect();
         canvas.width = rect.width;
         canvas.height = rect.height;
+        resultCanvas.width = rect.width;
+        resultCanvas.height = rect.height;
         
         // Clear canvas with white background
         ctx.fillStyle = 'white';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+        resultCtx.fillStyle = 'white';
+        resultCtx.fillRect(0, 0, resultCanvas.width, resultCanvas.height);
     }
     
     setupCanvas();
@@ -100,8 +111,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Draw the image on the canvas
                 ctx.drawImage(img, x, y, dimensions.width, dimensions.height);
                 
-                // Hide the drop zone
+                // Hide the drop zone and enable analyze button
                 container.classList.add('image-loaded');
+                analyzeBtn.disabled = false;
+                imageLoaded = true;
             };
             
             img.src = e.target.result;
@@ -292,4 +305,116 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Load saved size on page load
     loadSize();
+    
+    // Image analysis functionality
+    
+    // Calculate the average color of a region in the canvas
+    function getAverageColor(startX, startY, width, height) {
+        const imageData = ctx.getImageData(startX, startY, width, height);
+        const data = imageData.data;
+        
+        let r = 0, g = 0, b = 0;
+        let count = 0;
+        
+        // Sum all RGB values
+        for (let i = 0; i < data.length; i += 4) {
+            r += data[i];
+            g += data[i + 1];
+            b += data[i + 2];
+            count++;
+        }
+        
+        // Calculate average
+        r = Math.round(r / count);
+        g = Math.round(g / count);
+        b = Math.round(b / count);
+        
+        return { r, g, b };
+    }
+    
+    // Convert RGB to hex color
+    function rgbToHex(r, g, b) {
+        return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+    }
+    
+    // Parse hex color to RGB
+    function hexToRgb(hex) {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? {
+            r: parseInt(result[1], 16),
+            g: parseInt(result[2], 16),
+            b: parseInt(result[3], 16)
+        } : null;
+    }
+    
+    // Calculate color distance (Euclidean distance in RGB space)
+    function colorDistance(color1, color2) {
+        return Math.sqrt(
+            Math.pow(color1.r - color2.r, 2) +
+            Math.pow(color1.g - color2.g, 2) +
+            Math.pow(color1.b - color2.b, 2)
+        );
+    }
+    
+    // Find the closest color from the palette
+    function findClosestColor(targetColor) {
+        if (colors.length === 0) return '#FFFFFF'; // Default to white if no colors
+        
+        let closestColor = colors[0];
+        let minDistance = Number.MAX_VALUE;
+        
+        const targetRgb = hexToRgb(rgbToHex(targetColor.r, targetColor.g, targetColor.b));
+        
+        colors.forEach(color => {
+            const colorRgb = hexToRgb(color);
+            const distance = colorDistance(targetRgb, colorRgb);
+            
+            if (distance < minDistance) {
+                minDistance = distance;
+                closestColor = color;
+            }
+        });
+        
+        return closestColor;
+    }
+    
+    // Analyze the image and create a pixelated version with palette colors
+    function analyzeImage() {
+        if (!imageLoaded || colors.length === 0) return;
+        
+        // Clear the result canvas
+        resultCtx.fillStyle = 'white';
+        resultCtx.fillRect(0, 0, resultCanvas.width, resultCanvas.height);
+        
+        // Calculate square size based on the current size setting
+        // Size setting 1-100 maps to dividing the canvas into 2-50 squares
+        const gridSize = Math.max(2, Math.floor(currentSize / 2));
+        const squareWidth = canvas.width / gridSize;
+        const squareHeight = canvas.height / gridSize;
+        
+        // Process each square
+        for (let y = 0; y < gridSize; y++) {
+            for (let x = 0; x < gridSize; x++) {
+                // Calculate position
+                const startX = x * squareWidth;
+                const startY = y * squareHeight;
+                
+                // Get average color of this region
+                const avgColor = getAverageColor(startX, startY, squareWidth, squareHeight);
+                
+                // Find closest color from palette
+                const matchedColor = findClosestColor(avgColor);
+                
+                // Draw the matched color on result canvas
+                resultCtx.fillStyle = matchedColor;
+                resultCtx.fillRect(startX, startY, squareWidth, squareHeight);
+            }
+        }
+        
+        // Show the result canvas
+        resultContainer.style.display = 'block';
+    }
+    
+    // Analyze button event listener
+    analyzeBtn.addEventListener('click', analyzeImage);
 });
