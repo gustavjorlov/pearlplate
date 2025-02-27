@@ -3,30 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Canvas Drop</title>
+    <title>Pärlfigurer</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <h1>Drop Image to Canvas</h1>
+        <h1>Pärlfigurer</h1>
         <div class="canvases-wrapper">
             <div class="canvas-container">
                 <canvas id="imageCanvas"></canvas>
-                <div id="dropZone">Drop image here</div>
-                <h3 class="canvas-label">Original Image</h3>
+                <div id="dropZone">Släpp bild här</div>
             </div>
             <div class="canvas-container" id="resultCanvasContainer" style="display: none;">
                 <canvas id="resultCanvas"></canvas>
-                <h3 class="canvas-label">Analysis Result</h3>
             </div>
         </div>
         <div class="button-container">
-            <button id="analyzeBtn" disabled>Analyze Image</button>
+            <button id="analyzeBtn" disabled>Skapa pärlplatta</button>
         </div>
-        <p class="instructions">Drag and drop an image file onto the canvas</p>
         
         <div class="size-setting-container">
-            <h2>Size Setting</h2>
+            <h2>Figurens storlek</h2>
             <div class="size-control">
                 <input type="range" id="sizeSlider" min="0" max="100" value="50" class="size-slider">
                 <span id="sizeValue">50</span>
@@ -34,11 +31,11 @@
         </div>
         
         <div class="color-palette-container">
-            <h2>Color Palette</h2>
+            <h2>Färg</h2>
             <div id="colorPalette" class="color-palette"></div>
             <div class="color-controls">
                 <input type="color" id="colorPicker" class="color-picker">
-                <button id="addColorBtn" class="add-color-btn">Add Color</button>
+                <button id="addColorBtn" class="add-color-btn">+ Färg</button>
             </div>
         </div>
     </div>
